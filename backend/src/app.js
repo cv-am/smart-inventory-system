@@ -70,11 +70,13 @@ app.get("/api", (req, res) => {
 const frontendDist = path.resolve(__dirname, "../../frontend/dist");
 if (fs.existsSync(frontendDist)) {
   app.use(express.static(frontendDist));
-  app.get("*", (req, res, next) => {
-    if (req.originalUrl.startsWith("/api")) {
-      return next();
+
+  // Catch-all for React client-side routing (Express 5 compatible)
+  app.use((req, res, next) => {
+    if (req.method === "GET" && !req.originalUrl.startsWith("/api")) {
+      return res.sendFile(path.join(frontendDist, "index.html"));
     }
-    res.sendFile(path.join(frontendDist, "index.html"));
+    next();
   });
 } else {
   app.get("/", (req, res) => {
